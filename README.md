@@ -4,11 +4,11 @@ Download Twitter/X GIFs as real `.gif` files directly.
 
 ## Install
 
-Make sure you have **Python 3.9+** and [ffmpeg](https://ffmpeg.org/) installed.
+Make sure you have **Python 3.8+** and [ffmpeg](https://ffmpeg.org/) installed.
 
-Installing dependencies:
+Installing directly from this repo:
 ```bash
-pip install x2gif
+pip install git+https://github.com/SNINMNON/x2gif.git
 ```
 
 Installing ffmpeg:
@@ -19,16 +19,15 @@ Installing ffmpeg:
 ## Usage
 
 ```bash
-python x2gif.py "https://x.com/user/status/1234567890"
+x2gif https://x.com/user/status/1234567890
 ```
 
 To remove background:
-
 ```bash
-python gif.py "https://x.com/user/status/1234567890" -r
+x2gif https://x.com/user/status/1234567890 -r
 ```
 
-Check all option args:
+All option args
 ```bash
-python gif.py -h
+x2gif [-h] [--fps FPS] [--width WIDTH] [-o OUTPUT] [-r] [--color COLOR] [--similarity SIMILARITY] [--blend BLEND] url
 ```

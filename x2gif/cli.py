@@ -39,6 +39,8 @@ def mp4_to_gif(mp4_path, gif_path, fps=None, width=None,
                 width = int(w_val) if w_val and w_val > 0 else 480
         finally:
             cap.release()
+    
+    print(f"Output gif width={width}, fps={fps}")
 
     base = f"fps={fps},scale={width}:-1:flags=lanczos"
     if remove_bg:
