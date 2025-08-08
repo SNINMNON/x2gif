@@ -1,7 +1,11 @@
 import argparse, os, re, subprocess, sys, tempfile
 import cv2
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 from datetime import datetime
+
+DEFAULT_COOKIES_DIR = os.path.expanduser(r"~\.x2gif")
+DEFAULT_COOKIES = os.path.join(DEFAULT_COOKIES_DIR, "cookies.txt")
 
 def _hex_to_ffmpeg(color: str) -> str:
     """Convert '#fff'/'#ffffff'/'ffffff' -> '0xFFFFFF' for ffmpeg colorkey."""
@@ -18,13 +22,33 @@ def dl_video(tweet_url, outdir):
         "quiet": True,
         "no_warnings": True,
         "merge_output_format": "mp4",
-        "format": "mp4/best"
+        "format": "mp4/best",
     }
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(tweet_url, download=True)
-        path = ydl.prepare_filename(info)
-        base, ext = os.path.splitext(path)
-        return base + ".mp4" if not ext.lower().endswith("mp4") and os.path.exists(base + ".mp4") else path
+
+    if DEFAULT_COOKIES:
+        ydl_opts["cookiefile"] = DEFAULT_COOKIES
+
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(tweet_url, download=True)
+            path = ydl.prepare_filename(info)
+            base, ext = os.path.splitext(path)
+            return (
+                base + ".mp4"
+                if not ext.lower().endswith("mp4") and os.path.exists(base + ".mp4")
+                else path
+            )
+    except DownloadError as e:
+        # Convert to cleaner messag
+        if "NSFW tweet requires authentication" in str(e):
+            print(
+                "This tweet is NSFW or protected and requires login cookies.\n"
+                f"Export your Twitter cookies to {DEFAULT_COOKIES}"
+            )
+            sys.exit()
+        else:
+            # Re-raise other download errors
+            raise
 
 def mp4_to_gif(mp4_path, gif_path, fps=None, width=None,
                remove_bg=False, bg_color="#ffffff", similarity=0.10, blend=0.00):
@@ -78,6 +102,8 @@ def main():
     ap.add_argument("--blend", type=float, default=0.00, help="Colorkey edge blend 0..1 (default: 0.00)")
 
     args = ap.parse_args()
+
+    os.makedirs(DEFAULT_COOKIES_DIR, exist_ok=True)
 
     with tempfile.TemporaryDirectory() as tmp:
         mp4_path = dl_video(args.url, tmp)
