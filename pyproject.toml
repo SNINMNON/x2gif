@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "x2gif"
+version = "1.0.1"
+description = "Download Twitter/X GIFs as real GIF files"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "yt-dlp",
+    "opencv-python"
+]
+authors = [
+    { name = "SNINMNON", email = "sninmnon@gmail.com" }
+]
+license = "MIT" 
+
+[project.scripts]
+x2gif = "x2gif.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["x2gif*"]
+exclude = ["output*", "tests*", "dist*", "build*", "venv*"]
