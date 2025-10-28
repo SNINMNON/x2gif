@@ -17,38 +17,40 @@ def _hex_to_ffmpeg(color: str) -> str:
     return '0x' + s.upper()
 
 def dl_video(tweet_url, outdir):
+    # Normalize domain for older yt-dlp builds (safe no-op for newer ones)
+    tweet_url = re.sub(r'^https?://x\.com/', 'https://twitter.com/', tweet_url, flags=re.IGNORECASE)
+
     ydl_opts = {
         "outtmpl": os.path.join(outdir, "%(id)s.%(ext)s"),
         "quiet": True,
         "no_warnings": True,
+        # Let yt-dlp pick HLS/DASH/etc, then remux to mp4
+        "format": "bestvideo*+bestaudio/best",
         "merge_output_format": "mp4",
-        "format": "mp4/best",
     }
 
-    if DEFAULT_COOKIES:
+    # Only use cookies if you actually have them
+    if os.path.exists(DEFAULT_COOKIES):
         ydl_opts["cookiefile"] = DEFAULT_COOKIES
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(tweet_url, download=True)
-            path = ydl.prepare_filename(info)
-            base, ext = os.path.splitext(path)
-            return (
-                base + ".mp4"
-                if not ext.lower().endswith("mp4") and os.path.exists(base + ".mp4")
-                else path
-            )
+            path = ydl.prepare_filename(info)  # may be .mp4 or another ext before remux
+            base, _ = os.path.splitext(path)
+            # Prefer the remuxed mp4 if present
+            mp4_candidate = base + ".mp4"
+            return mp4_candidate if os.path.exists(mp4_candidate) else path
     except DownloadError as e:
-        # Convert to cleaner messag
-        if "NSFW tweet requires authentication" in str(e):
+        msg = str(e)
+        if "NSFW tweet requires authentication" in msg or "protected" in msg or "login" in msg:
             print(
-                "This tweet is NSFW or protected and requires login cookies.\n"
-                f"Export your Twitter cookies to {DEFAULT_COOKIES}"
+                "This tweet requires authentication.\n"
+                f"Export your X/Twitter cookies to {DEFAULT_COOKIES} and try again."
             )
-            sys.exit()
-        else:
-            # Re-raise other download errors
-            raise
+            sys.exit(1)
+        raise
+
 
 def mp4_to_gif(mp4_path, gif_path, fps=None, width=None,
                remove_bg=False, bg_color="#ffffff", similarity=0.10, blend=0.00):
