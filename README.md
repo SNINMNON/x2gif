@@ -29,5 +29,5 @@ x2gif https://x.com/user/status/1234567890 -r
 
 All option args
 ```bash
-x2gif [-h] [--fps FPS] [--width WIDTH] [-o OUTPUT] [-r] [--color COLOR] [--similarity SIMILARITY] [--blend BLEND] url
+x2gif [-h] [--fps FPS] [--width WIDTH] [-o OUTPUT] [-r COLOR] [--similarity SIMILARITY] [--blend BLEND] url
 ```

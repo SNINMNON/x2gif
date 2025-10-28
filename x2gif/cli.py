@@ -97,9 +97,13 @@ def main():
     ap.add_argument("--width", type=int, default=None, help="GIF width px (default: match source or 480)")
     ap.add_argument("-o", "--output", default=None, help="Output GIF path (default: YYYYMMDD-HHMMSS.gif in CWD)")
 
-    ap.add_argument("-r", "--removebg", action="store_true",
-                    help="Remove a solid background color to transparency (default white)")
-    ap.add_argument("--color", default="#ffffff", help="Hex color to remove (default: #ffffff)")
+    ap.add_argument("-r", "--removebg", nargs="?", const="#ffffff", default=None, metavar="HEXCOLOR",
+        help=(
+            "Remove a solid background. Optionally pass HEXCOLOR like '#aabbcc', 'aabbcc', or 'abc'. "
+            "If no HEXCOLOR is given, defaults to white."
+        ),
+    )
+
     ap.add_argument("--similarity", type=float, default=0.12, help="Colorkey similarity 0..1 (default: 0.12)")
     ap.add_argument("--blend", type=float, default=0.00, help="Colorkey edge blend 0..1 (default: 0.00)")
 
@@ -115,13 +119,16 @@ def main():
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         out_gif = args.output or f"{timestamp}.gif"
 
+        remove_bg = args.removebg is not None
+        bg_color = args.removebg if remove_bg else "#ffffff"
+
         mp4_to_gif(
             mp4_path,
             out_gif,
             fps=args.fps,
             width=args.width,
-            remove_bg=args.removebg,
-            bg_color=args.color,
+            remove_bg=remove_bg,
+            bg_color=bg_color,
             similarity=args.similarity,
             blend=args.blend
         )
